@@ -1,0 +1,111 @@
+@use '../../../variables' as var;
+// Content Pages (About, FAQ, Pricing)
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.page-title {
+  text-align: center;
+  margin-bottom: 3rem;
+
+  h1 {
+    font-size: 2.25rem;
+    font-weight: bold;
+    color: var.$text-dark;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1.125rem;
+    color: var.$text-light;
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+}
+
+.card {
+  background: rgba(var.$white, 0.8);
+  backdrop-filter: blur(12px);
+  border-radius: 1rem;
+  box-shadow: var.$shadow-md;
+  border: 1px solid var.$border-light;
+  padding: 2rem;
+  margin-bottom: 2rem;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var.$text-dark;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    color: var.$text-light;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// About Page
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.feature-card {
+  background: rgba(var.$white, 0.8);
+  backdrop-filter: blur(12px);
+  border-radius: 1rem;
+  box-shadow: var.$shadow-md;
+  border: 1px solid var.$border-light;
+  padding: 1.5rem;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: var.$shadow-lg;
+  }
+
+  .feature-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(to bottom right, var.$primary-purple, var.$primary-pink);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var.$white;
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var.$text-dark;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: var.$text-light;
+    line-height: 1.6;
+  }
+}
+
+.story-card {
+  background: linear-gradient(to right, #f3e8ff, #fce7f3);
+  border-color: var.$primary-purple;
+}
+
+.mission-card {
+  margin-bottom: 2rem;
+}
