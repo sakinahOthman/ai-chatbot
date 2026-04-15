@@ -79,7 +79,7 @@
   .feature-icon {
     width: 48px;
     height: 48px;
-    background: linear-gradient(to bottom right, var.$primary-purple, var.$primary-pink);
+    background: linear-gradient(to bottom right, var.$primary-green, var.$primary-orange);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -102,8 +102,8 @@
 }
 
 .story-card {
-  background: linear-gradient(to right, #f3e8ff, #fce7f3);
-  border-color: var.$primary-purple;
+  background: linear-gradient(to right, #e7f7f2, #bddbd2);
+  border-color: var.$primary-green;
 }
 
 .mission-card {

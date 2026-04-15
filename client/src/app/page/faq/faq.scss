@@ -113,7 +113,7 @@
 
   .faq-icon {
     flex-shrink: 0;
-    color: var.$secondary-purple;
+    color: var.$secondary-green;
     transition: transform 0.3s;
   }
 }
@@ -133,7 +133,7 @@
 .cta-card {
   text-align: center;
   background: linear-gradient(to right, var.$white, var.$white);
-  border-color: var.$primary-purple;
+  border-color: var.$primary-green;
 
   h2 {
     margin-bottom: 0.75rem;
@@ -147,7 +147,7 @@
 .cta-button {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(to right, var.$secondary-purple, var.$secondary-pink);
+  background: linear-gradient(to right, var.$secondary-green, var.$secondary-orange);
   color: var.$white;
   border: none;
   border-radius: 9999px;

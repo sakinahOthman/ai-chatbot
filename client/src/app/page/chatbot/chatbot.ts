@@ -7,6 +7,7 @@ interface ChatMessage {
   text: string;
   isUser: boolean;
   timestamp: Date;
+  isLoading?: boolean;
 }
 
 @Component({
@@ -19,35 +20,36 @@ export class Chatbot {
   private apiService = inject(ApiService);
   userInput = '';
   messages: ChatMessage[] = [
-    { text: 'Hello! I am your chatbot. Ask me anything.', isUser: false, timestamp: new Date() },
+    { text: 'Hello! I am your chatbot. Ask me anything.', isUser: false, timestamp: new Date(), isLoading: false },
   ];
 
-  async sendMessage(): Promise<void> {
+  sendMessage() {
     const trimmed = this.userInput.trim();
     if (!trimmed) {
       return;
     }
 
-    this.messages.push({ text: trimmed, isUser: true, timestamp: new Date() });
-
-    const botReply = await this.generateBotReply(trimmed);
-    this.messages.push({ text: botReply, isUser: false, timestamp: new Date() });
-
+    this.addMessage(trimmed, true);
+    this.generateBotReply(trimmed);
     this.userInput = '';
-
-    setTimeout(() => this.scrollToLastMessage(), 0);
   }
 
-  private generateBotReply(userText: string): Promise<string> {
-
-    this.apiService.sendMessage(userText).then(response => {
-      return Promise.resolve(response["reply"]);
-      // Here you would typically update the messages with the AI's response
-    }).catch(error => {
-      console.error('Error communicating with API:', error);
-      return Promise.resolve("Sorry, I encountered an error while processing your request.");
+  private generateBotReply(userText: string) {
+    this.addMessage("", false, true);
+    this.apiService.sendMessage(userText).subscribe({
+      next: (response) => {
+        const formattedText: string = response["reply"].replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        this.messages[this.messages.length - 1].text = formattedText;
+        this.messages[this.messages.length - 1].isLoading = false;
+        setTimeout(() => this.scrollToLastMessage(), 0);
+      },
+      error: (err) => {
+        console.error('Request failed:', err);
+        this.messages[this.messages.length - 1].text = "Sorry, I encountered an error while processing your request.";
+        this.messages[this.messages.length - 1].isLoading = false;
+        setTimeout(() => this.scrollToLastMessage(), 0);
+      }
     });
-    return Promise.resolve("Thinking...");
   }
 
   private scrollToLastMessage(): void {
@@ -55,6 +57,30 @@ export class Chatbot {
     if (container) {
       container.scrollTop = container.scrollHeight;
     }
+  }
+
+  addMessage(text: string, isUser: boolean, isLoading: boolean = false) {
+    this.messages.push({ text, isUser, timestamp: new Date(), isLoading });
+    setTimeout(() => this.scrollToLastMessage(), 0);
+  }
+
+  get groupedMessages() {
+    const groups: { date: Date, messages: ChatMessage[] }[] = [];
+    const map = new Map<string, ChatMessage[]>();
+
+    for (const message of this.messages) {
+      const dateKey = message.timestamp.toDateString();
+      if (!map.has(dateKey)) {
+        map.set(dateKey, []);
+      }
+      map.get(dateKey)!.push(message);
+    }
+
+    for (const [dateKey, msgs] of map) {
+      groups.push({ date: new Date(dateKey), messages: msgs });
+    }
+
+    return groups;
   }
 }
 

@@ -1,102 +1,33 @@
 @use '../../../variables' as var;
 
-// .chatbot-container {
-//   max-width: 480px;
-//   height: 800px;
-//   overflow-y: auto;
-//   margin: 1.2rem auto;
-//   border: 1px solid #d9d9d9;
-//   border-radius: 12px;
-//   display: flex;
-//   flex-direction: column;
-//   background: #ffffff;
-//   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-// }
+.date-group {
+  margin-bottom: 1rem;
+}
 
+.date-header {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
 
-// .chatbot-header {
-//   padding: 1rem;
-//   background: #1f2937;
-//   color: #f9fafb;
-//   border-top-left-radius: 12px;
-//   border-top-right-radius: 12px;
-// }
+.date-header::before,
+.date-header::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #9099aa;
+}
 
-// .chatbot-messages {
-//   min-height: 260px;
-//   padding: 1rem;
-//   flex: 1;
-//   overflow-y: auto;
-//   background: #f3f4f6;
+.date-header:not(:empty)::before {
+  margin-right: 1em;
+}
 
-// }
-
-// .message-box {
-//   display: flex;
-//   flex-direction: column;
-//   gap: 0.5rem;
-// }
-
-// .message {
-//   display: inline-block;
-//   margin-bottom: 0.75rem;
-//   padding: 0.65rem 0.9rem;
-//   border-radius: 16px;
-//   max-width: 80%;
-//   line-height: 1.35;
-//   word-wrap: break-word;
-// }
-
-// .message.bot {
-//   background: #e5e7eb;
-//   color: #111827;
-//   align-self: flex-start;
-// }
-
-// .message.user {
-//   background: #2563eb;
-//   color: #fff;
-//   align-self: flex-end;
-//   margin-left: auto;
-// }
-
-// .chatbot-form {
-//   display: flex;
-//   gap: 0.6rem;
-//   padding: 0.9rem;
-//   border-top: 1px solid #e5e7eb;
-//   background: #fff;
-// }
-
-// .chatbot-input {
-//   flex: 1;
-//   padding: 0.65rem 0.85rem;
-//   border: 1px solid #cbd5e1;
-//   border-radius: 999px;
-//   font-size: 0.95rem;
-//   outline: none;
-// }
-
-// .chatbot-input:focus {
-//   border-color: #2563eb;
-//   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-// }
-
-// .chatbot-send {
-//   padding: 0 1rem;
-//   min-width: 68px;
-//   border: none;
-//   border-radius: 999px;
-//   background-color: #2563eb;
-//   color: #fff;
-//   font-weight: 600;
-//   cursor: pointer;
-// }
-
-// .chatbot-send:disabled {
-//   opacity: 0.45;
-//   cursor: not-allowed;
-// }
+.date-header:not(:empty)::after {
+  margin-left: 1em;
+}
 
 .page {
   display: none;
@@ -149,7 +80,25 @@
     &.user-message {
       flex-direction: row-reverse;
     }
+                     
   }
+
+  .loader {
+    width: 4px;
+    height: 4px;
+    margin: 0.75rem 2rem;
+    color: #000;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    box-shadow: 19px 0 0 7px, 38px 0 0 3px, 57px 0 0 0;
+    transform: translateX(-38px);
+    animation: l21 .5s infinite alternate linear;
+  }
+
+  @keyframes l21 {
+    50%  {box-shadow: 19px 0 0 3px, 38px 0 0 7px, 57px 0 0 3px}
+    100% {box-shadow: 19px 0 0 0  , 38px 0 0 3px, 57px 0 0 7px}
+  }    
 
   .message-avatar {
     width: 32px;
@@ -162,7 +111,7 @@
     color: var.$white;
 
     &.bot-avatar {
-      background: linear-gradient(to bottom right, var.$primary-purple, var.$primary-pink);
+      background: linear-gradient(to bottom right, var.$primary-green, var.$primary-orange);
     }
 
     &.user-avatar {
@@ -175,7 +124,9 @@
   .message-bubble {
     max-width: 500px;
     padding: 0.75rem 1rem;
+    margin: 0.5rem;
     border-radius: 1rem;
+    background: white;
 
     .bot-message & {
       background: var.$white;
@@ -184,7 +135,7 @@
     }
 
     .user-message & {
-      background: linear-gradient(to right, var.$secondary-purple, var.$secondary-pink);
+      background: linear-gradient(to right, var.$secondary-green, var.$secondary-orange);
       color: var.$white;
     }
 
@@ -192,11 +143,14 @@
       font-size: 0.875rem;
       line-height: 1.6;
       margin-bottom: 0.25rem;
+      white-space: pre-wrap;
     }
 
     .message-time {
-      font-size: 0.75rem;
+      color: #9099aa;
+      font-size: 0.7rem;
       display: block;
+      float: right;
 
       .bot-message & {
         color: var.$text-lighter;
@@ -221,7 +175,7 @@
     flex: 1;
     padding: 0.75rem 1rem;
     border-radius: 9999px;
-    border: 2px solid var.$primary-purple;
+    border: 2px solid var.$primary-green;
     background: var.$white;
     font-size: 1rem;
     transition: border-color 0.2s;
@@ -229,7 +183,7 @@
 
     &:focus {
       outline: none;
-      border-color: var.$secondary-purple;
+      border-color: var.$secondary-green;
     }
 
     &::placeholder {
@@ -239,7 +193,7 @@
 
   .send-button {
     padding: 0.75rem 1.5rem;
-    background: linear-gradient(to right, var.$secondary-purple, var.$secondary-pink);
+    background: linear-gradient(to right, var.$secondary-green, var.$secondary-orange);
     color: var.$white;
     border: none;
     border-radius: 9999px;

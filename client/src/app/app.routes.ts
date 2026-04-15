@@ -4,11 +4,13 @@ import { Chatbot } from './page/chatbot/chatbot';
 import { About } from './page/about/about';
 import { Faq } from './page/faq/faq';
 import { Pricing } from './page/pricing/pricing';
+import { SsoLoading } from './page/sso-loading/sso-loading';
 
 export const routes: Routes = [
-  { path: 'chatbot', component: Chatbot },
-  { path: 'about', component: About },
-  { path: 'faq', component: Faq },
-  { path: 'pricing', component: Pricing },
-  { path: '', redirectTo: 'chatbot', pathMatch: 'full' },
+  { path: '', component: SsoLoading },
+  { path: 'main', component: Main },
+  { path: 'chatbot', component: Chatbot, outlet: 'sidebar' },
+  { path: 'about', component: About, outlet: 'sidebar' },
+  { path: 'faq', component: Faq, outlet: 'sidebar' },
+  { path: 'pricing', component: Pricing, outlet: 'sidebar' },
 ];
