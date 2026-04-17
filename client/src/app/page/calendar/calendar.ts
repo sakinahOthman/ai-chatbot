@@ -1,142 +1,214 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { CalendarDayViewComponent, CalendarEvent, CalendarWeekViewComponent, DateAdapter, provideCalendar} from 'angular-calendar';
+import { ApiService, BabyScheduleEvent, BabyScheduleRequest, BabyScheduleResponse } from '../../service/api-service';
+import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
 
-interface CalendarEvent {
-  id: string;
+type CalendarViewMode = 'day' | 'week';
+type BabyEventType = 'nap' | 'feed' | 'play' | 'awake' | 'solids' | 'bedtime' | 'other';
+
+interface BabyCalendarMeta {
+  type: BabyEventType;
+  notes?: string;
+  source: 'ai' | 'manual';
+}
+
+type BabyCalendarEvent = CalendarEvent<BabyCalendarMeta>;
+
+interface CustomEventForm {
   title: string;
-  date: Date;
-  start: string;
-  end: string;
-  description?: string;
+  type: BabyEventType;
+  startTime: string;
+  endTime: string;
+  notes: string;
 }
 
 @Component({
   selector: 'app-calendar',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, CalendarDayViewComponent, CalendarWeekViewComponent],
   templateUrl: './calendar.html',
   styleUrl: './calendar.scss',
+   providers: [
+    provideCalendar({
+      provide: DateAdapter,
+      useFactory: adapterFactory,
+    }),
+  ],
 })
-export class Calendar implements OnInit {
-  viewMode: 'day' | 'week' = 'week';
-  currentDate = new Date();
-  weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-  
-  weekDates: Date[] = [];
-  dayEventsList: CalendarEvent[] = [];
-  weekEventsList: CalendarEvent[] = [];
-  timeSlots: string[] = [];
+export class Calendar {
+  private apiService = inject(ApiService);
+  readonly eventTypes: BabyEventType[] = ['nap', 'feed', 'play', 'awake', 'solids', 'bedtime', 'other'];
 
-  // Sample events - you can replace with data from API
-  sampleEvents: CalendarEvent[] = [
-    {
-      id: '1',
-      title: 'Team Meeting',
-      date: new Date(),
-      start: '10:00',
-      end: '11:00',
-      description: 'Weekly team sync'
-    },
-    {
-      id: '2',
-      title: 'Project Review',
-      date: new Date(),
-      start: '14:00',
-      end: '15:00',
-      description: 'Q2 project status'
-    }
-  ];
+  view: CalendarViewMode = 'day';
+  viewDate = new Date();
+  events: BabyCalendarEvent[] = [];
+  isGenerating = false;
+  errorMessage = '';
+  scheduleSummary = '';
 
-  ngOnInit() {
-    this.generateTimeSlots();
-    this.updateWeekDates();
-    this.updateEventsList();
+  scheduleRequest: BabyScheduleRequest = {
+    babyAgeMonths: 6,
+    wakeTime: '07:00',
+    bedtime: '19:00',
+    naps: 3,
+    feeds: 5,
+    solids: false,
+    notes: '',
+    date: this.toDateInputValue(new Date()),
+  };
+
+  customEvent: CustomEventForm = {
+    title: '',
+    type: 'play',
+    startTime: '10:00',
+    endTime: '10:45',
+    notes: '',
+  };
+
+  readonly colorMap: Record<BabyEventType, { primary: string; secondary: string }> = {
+    nap: { primary: '#86c9b0', secondary: '#e7f7f2' },
+    feed: { primary: '#d4994b', secondary: '#fff3df' },
+    play: { primary: '#4f8ccf', secondary: '#eaf2fc' },
+    awake: { primary: '#818cf8', secondary: '#eef0ff' },
+    solids: { primary: '#ed7c4a', secondary: '#ffefe7' },
+    bedtime: { primary: '#7c3aed', secondary: '#f5efff' },
+    other: { primary: '#6b7280', secondary: '#f3f4f6' },
+  };
+
+  setView(view: CalendarViewMode): void {
+    this.view = view;
   }
 
-  generateTimeSlots() {
-    this.timeSlots = [];
-    for (let i = 0; i < 24; i++) {
-      const hour = i.toString().padStart(2, '0');
-      this.timeSlots.push(`${hour}:00`);
-    }
-  }
-
-  updateWeekDates() {
-    const current = new Date(this.currentDate);
-    const first = current.getDate() - current.getDay();
-    this.weekDates = [];
-    
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(current.setDate(first + i));
-      this.weekDates.push(new Date(date));
-    }
-  }
-
-  updateEventsList() {
-    if (this.viewMode === 'day') {
-      this.dayEventsList = this.sampleEvents.filter(
-        event => this.isSameDay(event.date, this.currentDate)
-      );
+  moveDate(direction: 'prev' | 'next'): void {
+    const baseDate = new Date(this.viewDate);
+    if (this.view === 'day') {
+      baseDate.setDate(baseDate.getDate() + (direction === 'next' ? 1 : -1));
     } else {
-      this.weekEventsList = this.sampleEvents.filter(
-        event => this.isInWeek(event.date, this.weekDates)
-      );
+      baseDate.setDate(baseDate.getDate() + (direction === 'next' ? 7 : -7));
     }
+    this.viewDate = baseDate;
+    this.scheduleRequest.date = this.toDateInputValue(baseDate);
   }
 
-  isSameDay(date1: Date, date2: Date): boolean {
-    return date1.toDateString() === date2.toDateString();
+  jumpToToday(): void {
+    this.viewDate = new Date();
+    this.scheduleRequest.date = this.toDateInputValue(this.viewDate);
   }
 
-  isInWeek(date: Date, weekDates: Date[]): boolean {
-    return weekDates.some(d => this.isSameDay(date, d));
+  onDateChange(dateValue: string): void {
+    this.scheduleRequest.date = dateValue;
+    this.viewDate = new Date(`${dateValue}T00:00:00`);
   }
 
-  getEventForTimeSlot(timeSlot: string, date: Date): CalendarEvent | undefined {
-    const events = this.viewMode === 'day' ? this.dayEventsList : this.weekEventsList;
-    return events.find(
-      event => event.start === timeSlot && this.isSameDay(event.date, date)
-    );
+  generateSchedule(): void {
+    if (this.isGenerating) {
+      return;
+    }
+    this.errorMessage = '';
+    this.scheduleSummary = '';
+    this.isGenerating = true;
+
+    this.apiService.generateBabySchedule(this.scheduleRequest).subscribe({
+      next: (response: BabyScheduleResponse) => {
+        this.scheduleSummary = response.scheduleSummary ?? '';
+        this.events = (response.events ?? []).map((event) => this.mapScheduleEvent(event));
+        this.sortEvents();
+        this.isGenerating = false;
+      },
+      error: () => {
+        this.errorMessage = 'Unable to generate schedule right now. Please try again.';
+        this.isGenerating = false;
+      },
+    });
   }
 
-  switchView(mode: 'day' | 'week') {
-    this.viewMode = mode;
-    this.updateEventsList();
+  addCustomEvent(): void {
+    const title = this.customEvent.title.trim();
+    if (!title) {
+      return;
+    }
+
+    const dateBase = this.getSelectedDate();
+    const normalizedType = this.normalizeType(this.customEvent.type);
+
+    this.events = [
+      ...this.events,
+      {
+        title,
+        start: this.toDateTime(dateBase, this.customEvent.startTime),
+        end: this.toDateTime(dateBase, this.customEvent.endTime),
+        color: this.colorMap[normalizedType],
+        meta: {
+          type: normalizedType,
+          notes: this.customEvent.notes.trim() || undefined,
+          source: 'manual',
+        },
+      },
+    ];
+
+    this.sortEvents();
+    this.customEvent = {
+      title: '',
+      type: 'play',
+      startTime: '10:00',
+      endTime: '10:45',
+      notes: '',
+    };
   }
 
-  goToPreviousDay() {
-    this.currentDate.setDate(this.currentDate.getDate() - 1);
-    this.currentDate = new Date(this.currentDate);
-    this.updateWeekDates();
-    this.updateEventsList();
+  removeEvent(event: BabyCalendarEvent): void {
+    this.events = this.events.filter((calendarEvent) => calendarEvent !== event);
   }
 
-  goToNextDay() {
-    this.currentDate.setDate(this.currentDate.getDate() + 1);
-    this.currentDate = new Date(this.currentDate);
-    this.updateWeekDates();
-    this.updateEventsList();
+  protected formatTypeLabel(type: string): string {
+    const normalized = this.normalizeType(type);
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
   }
 
-  goToToday() {
-    this.currentDate = new Date();
-    this.updateWeekDates();
-    this.updateEventsList();
+  private mapScheduleEvent(event: BabyScheduleEvent): BabyCalendarEvent {
+    const type = this.normalizeType(event.type);
+    const baseDate = this.getSelectedDate();
+    return {
+      title: event.title || this.formatTypeLabel(type),
+      start: this.toDateTime(baseDate, event.startTime),
+      end: this.toDateTime(baseDate, event.endTime),
+      color: this.colorMap[type],
+      meta: {
+        type,
+        notes: event.notes,
+        source: 'ai',
+      },
+    };
   }
 
-  formatDate(date: Date): string {
-    return `${this.monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  private normalizeType(value: string): BabyEventType {
+    const normalized = (value || '').toLowerCase().trim();
+    if (this.eventTypes.includes(normalized as BabyEventType)) {
+      return normalized as BabyEventType;
+    }
+    return 'other';
   }
 
-  getCurrentDateDisplay(): string {
-    return this.formatDate(this.currentDate);
+  private getSelectedDate(): Date {
+    return new Date(`${this.scheduleRequest.date}T00:00:00`);
   }
 
-  addEvent(event: CalendarEvent) {
-    this.sampleEvents.push(event);
-    this.updateEventsList();
+  private sortEvents(): void {
+    this.events = [...this.events].sort((a, b) => a.start.getTime() - b.start.getTime());
+  }
+
+  private toDateTime(date: Date, time: string): Date {
+    const [hours, minutes] = time.split(':').map((part) => Number(part));
+    const dateTime = new Date(date);
+    dateTime.setHours(Number.isFinite(hours) ? hours : 0, Number.isFinite(minutes) ? minutes : 0, 0, 0);
+    return dateTime;
+  }
+
+  private toDateInputValue(date: Date): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

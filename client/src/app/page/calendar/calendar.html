@@ -1,96 +1,154 @@
-<div class="calendar-container">
-  <!-- Header -->
-  <div class="calendar-header">
-    <div class="header-top">
-      <h1>Calendar</h1>
-      <div class="view-controls">
-        <button 
-          class="btn" 
-          [class.active]="viewMode === 'day'"
-          (click)="switchView('day')">
-          Day
-        </button>
-        <button 
-          class="btn" 
-          [class.active]="viewMode === 'week'"
-          (click)="switchView('week')">
-          Week
-        </button>
+<div class="calendar-page">
+  <header class="calendar-header">
+    <div class="title-block">
+      <h2>Baby Schedule Calendar</h2>
+      <p>Generate a personalized day plan and adjust it for your family routine.</p>
+    </div>
+    <div class="view-toggle">
+      <button type="button" [class.active]="view === 'day'" (click)="setView('day')">Day</button>
+      <button type="button" [class.active]="view === 'week'" (click)="setView('week')">Week</button>
+    </div>
+  </header>
+
+  <section class="control-panel">
+    <div class="control-grid">
+      <label>
+        Date
+        <input
+          type="date"
+          [ngModel]="scheduleRequest.date"
+          (ngModelChange)="onDateChange($event)"
+        />
+      </label>
+      <label>
+        Baby age (months)
+        <input type="number" min="0" max="36" [(ngModel)]="scheduleRequest.babyAgeMonths" />
+      </label>
+      <label>
+        Wake time
+        <input type="time" [(ngModel)]="scheduleRequest.wakeTime" />
+      </label>
+      <label>
+        Bedtime
+        <input type="time" [(ngModel)]="scheduleRequest.bedtime" />
+      </label>
+      <label>
+        Naps
+        <input type="number" min="1" max="6" [(ngModel)]="scheduleRequest.naps" />
+      </label>
+      <label>
+        Feeds
+        <input type="number" min="1" max="10" [(ngModel)]="scheduleRequest.feeds" />
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" [(ngModel)]="scheduleRequest.solids" />
+        Include solids
+      </label>
+      <label class="notes-field">
+        Notes
+        <textarea
+          rows="2"
+          [(ngModel)]="scheduleRequest.notes"
+          placeholder="Teething, daycare timing, preferred nap windows..."
+        ></textarea>
+      </label>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="primary" (click)="generateSchedule()" [disabled]="isGenerating">
+        {{ isGenerating ? 'Generating...' : 'Generate with OpenAI' }}
+      </button>
+      <div class="date-nav">
+        <button type="button" (click)="moveDate('prev')">Previous</button>
+        <button type="button" (click)="jumpToToday()">Today</button>
+        <button type="button" (click)="moveDate('next')">Next</button>
       </div>
     </div>
 
-    <!-- Navigation -->
-    <div class="header-nav">
-      <button class="btn-nav" (click)="goToPreviousDay()">← Prev</button>
-      <button class="btn-nav btn-today" (click)="goToToday()">Today</button>
-      <button class="btn-nav" (click)="goToNextDay()">Next →</button>
-      <span class="current-date">{{ getCurrentDateDisplay() }}</span>
+    @if (scheduleSummary) {
+      <p class="schedule-summary">{{ scheduleSummary }}</p>
+    }
+    @if (errorMessage) {
+      <p class="error-message">{{ errorMessage }}</p>
+    }
+  </section>
+
+  <section class="legend">
+    @for (type of eventTypes; track type) {
+      <span class="legend-item">
+        <span class="dot" [style.background]="colorMap[type].primary"></span>
+        {{ formatTypeLabel(type) }}
+      </span>
+    }
+  </section>
+
+  <section class="calendar-layout">
+    <div class="calendar-shell">
+      @if (view === 'day') {
+        <mwl-calendar-day-view
+          [viewDate]="viewDate"
+          [events]="events"
+          [dayStartHour]="5"
+          [dayEndHour]="22"
+          [hourSegments]="2"
+        />
+      } @else {
+        <mwl-calendar-week-view
+          [viewDate]="viewDate"
+          [events]="events"
+          [dayStartHour]="5"
+          [dayEndHour]="22"
+          [hourSegments]="2"
+        />
+      }
     </div>
-  </div>
 
-  <!-- Calendar Content -->
-  <div class="calendar-content">
-    <!-- Day View -->
-    <div *ngIf="viewMode === 'day'" class="day-view">
-      <div class="day-header">
-        <h2>{{ weekDays[currentDate.getDay()] }}, {{ monthNames[currentDate.getMonth()] }} {{ currentDate.getDate() }}</h2>
+    <aside class="customization-panel">
+      <h3>Add custom event</h3>
+      <label>
+        Title
+        <input type="text" [(ngModel)]="customEvent.title" placeholder="Morning walk" />
+      </label>
+      <label>
+        Type
+        <select [(ngModel)]="customEvent.type">
+          @for (type of eventTypes; track type) {
+            <option [value]="type">{{ formatTypeLabel(type) }}</option>
+          }
+        </select>
+      </label>
+      <div class="time-row">
+        <label>
+          Start
+          <input type="time" [(ngModel)]="customEvent.startTime" />
+        </label>
+        <label>
+          End
+          <input type="time" [(ngModel)]="customEvent.endTime" />
+        </label>
       </div>
+      <label>
+        Notes
+        <textarea rows="2" [(ngModel)]="customEvent.notes" placeholder="Optional details"></textarea>
+      </label>
+      <button type="button" class="primary" (click)="addCustomEvent()">Add event</button>
 
-      <div class="day-schedule">
-        <div class="time-column">
-          <div class="time-slot" *ngFor="let time of timeSlots">
-            {{ time }}
-          </div>
-        </div>
-
-        <div class="events-column">
-          <div class="event-slot" *ngFor="let time of timeSlots" [ngClass]="{ 'has-event': getEventForTimeSlot(time, currentDate) }">
-            <div *ngIf="getEventForTimeSlot(time, currentDate) as event" class="event-card">
-              <div class="event-title">{{ event.title }}</div>
-              <div class="event-time">{{ event.start }} - {{ event.end }}</div>
-              <div *ngIf="event.description" class="event-description">{{ event.description }}</div>
+      <h3>Events</h3>
+      <div class="event-list">
+        @for (event of events; track event) {
+          <article class="event-card" [style.border-left-color]="event.color?.primary">
+            <div class="event-card-head">
+              <h4>{{ event.title }}</h4>
+              <button type="button" class="delete" (click)="removeEvent(event)">Remove</button>
             </div>
-          </div>
-        </div>
+            <p class="meta">{{ formatTypeLabel(event.meta?.type ?? 'other') }}</p>
+            <p class="meta">{{ event.start | date: 'shortTime' }} - {{ event.end | date: 'shortTime' }}</p>
+            @if (event.meta?.notes) {
+              <p class="notes">{{ event.meta?.notes }}</p>
+            }
+          </article>
+        }
       </div>
-    </div>
-
-    <!-- Week View -->
-    <div *ngIf="viewMode === 'week'" class="week-view">
-      <div class="week-header">
-        <h2>Week of {{ formatDate(weekDates[0]) }}</h2>
-      </div>
-
-      <div class="week-schedule">
-        <!-- Days header -->
-        <div class="week-days-header">
-          <div class="time-col-header"></div>
-          <div class="day-col-header" *ngFor="let date of weekDates">
-            <div class="day-name">{{ weekDays[date.getDay()] }}</div>
-            <div class="day-date">{{ date.getDate() }}</div>
-          </div>
-        </div>
-
-        <!-- Time slots -->
-        <div class="week-grid">
-          <div class="time-column">
-            <div class="time-slot" *ngFor="let time of timeSlots">
-              {{ time }}
-            </div>
-          </div>
-
-          <div class="days-columns">
-            <div class="day-column" *ngFor="let date of weekDates">
-              <div class="event-slot" *ngFor="let time of timeSlots" [ngClass]="{ 'has-event': getEventForTimeSlot(time, date), 'today': isSameDay(date, currentDate) }">
-                <div *ngIf="getEventForTimeSlot(time, date) as event" class="event-card">
-                  <div class="event-title">{{ event.title }}</div>
-                  <div class="event-time">{{ event.start }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+    </aside>
+  </section>
 </div>
