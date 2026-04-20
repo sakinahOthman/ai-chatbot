@@ -10,9 +10,9 @@ import { Calendar } from './page/calendar/calendar';
 export const routes: Routes = [
   { path: '', component: SsoLoading },
   { path: 'main', component: Main },
-  { path: 'chatbot', component: Chatbot, outlet: 'sidebar' },
-  { path: 'calendar', component: Calendar, outlet: 'sidebar' },
-  { path: 'about', component: About, outlet: 'sidebar' },
-  { path: 'faq', component: Faq, outlet: 'sidebar' },
-  { path: 'pricing', component: Pricing, outlet: 'sidebar' },
+  // { path: 'chatbot', component: Chatbot, outlet: 'sidebar' },
+  // { path: 'calendar', component: Calendar, outlet: 'sidebar' },
+  // { path: 'about', component: About, outlet: 'sidebar' },
+  // { path: 'faq', component: Faq, outlet: 'sidebar' },
+  // { path: 'pricing', component: Pricing, outlet: 'sidebar' },
 ];

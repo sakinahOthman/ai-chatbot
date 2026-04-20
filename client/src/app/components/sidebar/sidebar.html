@@ -281,19 +281,19 @@
         </div>
 
         <nav class="nav-menu">
-            <button class="nav-item active" data-page="chat" routerLinkActive="active" [routerLink]="[{ outlets: { sidebar: ['chatbot'] } }]">
+            <button class="nav-item" data-page="chat" (click)="selectPage('chat')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path>
                 </svg>
                 <span>Chat</span>
             </button>
-            <button class="nav-item active" data-page="calendar" routerLinkActive="active" [routerLink]="[{ outlets: { sidebar: ['calendar'] } }]">
+            <button class="nav-item" data-page="calendar" (click)="selectPage('calendar')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 10H21M7 3V5M17 3V5M6.2 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4802 21 18.9201 21 17.8V8.2C21 7.07989 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V17.8C3 18.9201 3 19.4802 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.07989 21 6.2 21Z"></path>
                 </svg>
                 <span>Calendar</span>
             </button>
-            <button class="nav-item" data-page="about" routerLinkActive="active" [routerLink]="[{ outlets: { sidebar: ['about'] } }]">
+            <button class="nav-item" data-page="about" (click)="selectPage('about')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <path d="M12 16v-4"></path>
@@ -301,7 +301,7 @@
                 </svg>
                 <span>About</span>
             </button>
-            <button class="nav-item" data-page="faq"  routerLinkActive="active" [routerLink]="[{ outlets: { sidebar: ['faq'] } }]">
+            <button class="nav-item" data-page="faq" (click)="selectPage('faq')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
@@ -309,7 +309,7 @@
                 </svg>
                 <span>FAQ</span>
             </button>
-            <button class="nav-item" data-page="pricing"  routerLinkActive="active" [routerLink]="[{ outlets: { sidebar: ['pricing'] } }]">
+            <button class="nav-item" data-page="pricing" (click)="selectPage('pricing')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect width="20" height="14" x="2" y="5" rx="2"></rect>
                     <path d="M2 10h20"></path>
@@ -320,6 +320,6 @@
     </div>
 
     <div class="sidebar-footer">
-    <p>Helping families get better sleep, one night at a time 🌙</p>
+      <p>Helping families get better sleep, one night at a time 🌙</p>
     </div>
 </aside>

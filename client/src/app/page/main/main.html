@@ -1,6 +1,10 @@
-<!-- <div class="app-container">
+<div class="app-container">
     <app-sidebar></app-sidebar>
     <main class="main-content">
-        <router-outlet name="sidebar"></router-outlet>
+        <app-chatbot *ngIf="selectedPage === 'chat'"></app-chatbot>
+        <app-about *ngIf="selectedPage === 'about'"></app-about>
+        <app-calendar *ngIf="selectedPage === 'calendar'"></app-calendar>
+        <app-faq *ngIf="selectedPage === 'faq'"></app-faq>
+        <app-pricing *ngIf="selectedPage === 'pricing'"></app-pricing>
     </main>
-</div> -->
+</div>

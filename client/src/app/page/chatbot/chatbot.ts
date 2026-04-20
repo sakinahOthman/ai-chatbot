@@ -19,9 +19,7 @@ interface ChatMessage {
 export class Chatbot {
   private apiService = inject(ApiService);
   userInput = '';
-  messages: ChatMessage[] = [
-    { text: 'Hello! I am your chatbot. Ask me anything.', isUser: false, timestamp: new Date(), isLoading: false },
-  ];
+  messages: ChatMessage[] = [];
 
   sendMessage() {
     const trimmed = this.userInput.trim();
