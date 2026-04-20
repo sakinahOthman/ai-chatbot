@@ -6,6 +6,7 @@ import { Faq } from './page/faq/faq';
 import { Pricing } from './page/pricing/pricing';
 import { SsoLoading } from './page/sso-loading/sso-loading';
 import { Calendar } from './page/calendar/calendar';
+import { Calendar } from './page/calendar/calendar';
 
 export const routes: Routes = [
   { path: '', component: SsoLoading },
